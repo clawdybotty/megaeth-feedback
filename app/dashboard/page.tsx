@@ -11,7 +11,7 @@ export default function DashboardPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   useEffect(() => {
-    fetch('/api/stats')
+    fetch(`/api/stats?t=${Date.now()}`)
       .then(res => res.json())
       .then(data => {
         setStats(data.data || [])
