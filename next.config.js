@@ -6,6 +6,10 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  // Disable Next.js route handler caching entirely
+  experimental: {
+    isrFlushToDisk: false,
+  },
 }
 
 module.exports = nextConfig
