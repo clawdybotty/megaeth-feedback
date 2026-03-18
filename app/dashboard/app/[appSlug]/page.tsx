@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect, use } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import { App, Review } from '@/lib/types'
 import Link from 'next/link'
 
-export default function AppDetailPage({ params }: { params: Promise<{ appSlug: string }> }) {
-  const { appSlug } = use(params)
+export default function AppDetailPage() {
+  const { appSlug } = useParams<{ appSlug: string }>()
   const router = useRouter()
   const [app, setApp] = useState<App | null>(null)
   const [reviews, setReviews] = useState<Review[]>([])
@@ -18,30 +18,30 @@ export default function AppDetailPage({ params }: { params: Promise<{ appSlug: s
       fetch(`/api/reviews?app=${appSlug}`).then(res => res.json())
     ])
       .then(([appsData, reviewsData]) => {
-        const allApps = appsData.data || []
-        const currentApp = allApps.find((a: App) => a.slug === appSlug)
+        const apps = appsData.data || []
+        const currentApp = apps.find((a: App) => a.slug === appSlug)
         setApp(currentApp || null)
         setReviews(reviewsData.data || [])
         setLoading(false)
       })
       .catch(err => {
-        console.error('Failed to load data:', err)
+        console.error('Failed to load reviews:', err)
         setLoading(false)
       })
   }, [appSlug])
-
-  if (!app) {
-    return (
-      <div className="text-center py-20">
-        <p className="text-red-400">App not found</p>
-      </div>
-    )
-  }
 
   if (loading) {
     return (
       <div className="text-center py-20">
         <p className="text-slate-400">Loading...</p>
+      </div>
+    )
+  }
+
+  if (!app) {
+    return (
+      <div className="text-center py-20">
+        <p className="text-red-400">App not found</p>
       </div>
     )
   }
@@ -53,10 +53,7 @@ export default function AppDetailPage({ params }: { params: Promise<{ appSlug: s
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="text-slate-400 hover:text-white transition-colors"
-        >
+        <button onClick={() => router.push('/dashboard')} className="text-slate-400 hover:text-white transition-colors">
           ← Back to Dashboard
         </button>
       </div>
@@ -69,9 +66,7 @@ export default function AppDetailPage({ params }: { params: Promise<{ appSlug: s
               {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
             </p>
           </div>
-          <div className="text-4xl font-bold text-yellow-400">
-            {avgOverall}
-          </div>
+          <div className="text-4xl font-bold text-yellow-400">{avgOverall}</div>
         </div>
       </div>
 
@@ -82,10 +77,7 @@ export default function AppDetailPage({ params }: { params: Promise<{ appSlug: s
       ) : (
         <div className="space-y-4">
           {reviews.map((review) => (
-            <div
-              key={review.id}
-              className="bg-slate-800 border border-slate-700 rounded-lg p-6"
-            >
+            <div key={review.id} className="bg-slate-800 border border-slate-700 rounded-lg p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <Link
@@ -99,55 +91,28 @@ export default function AppDetailPage({ params }: { params: Promise<{ appSlug: s
                     {new Date(review.created_at || '').toLocaleDateString()}
                   </p>
                 </div>
-                <div className="text-2xl font-bold text-yellow-400">
-                  {review.overall_rating}★
-                </div>
+                <div className="text-2xl font-bold text-yellow-400">{review.overall_rating}★</div>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 text-sm">
-                <div>
-                  <p className="text-slate-400">Wallet</p>
-                  <p className="font-semibold text-white">{review.wallet_connection}★</p>
-                </div>
-                <div>
-                  <p className="text-slate-400">UI/UX</p>
-                  <p className="font-semibold text-white">{review.ui_ux_quality}★</p>
-                </div>
-                <div>
-                  <p className="text-slate-400">Functionality</p>
-                  <p className="font-semibold text-white">{review.core_functionality}★</p>
-                </div>
-                <div>
-                  <p className="text-slate-400">Mobile</p>
-                  <p className="font-semibold text-white">{review.mobile_experience}★</p>
-                </div>
-                <div>
-                  <p className="text-slate-400">Speed</p>
-                  <p className="font-semibold text-white">{review.speed_performance}★</p>
-                </div>
-                <div>
-                  <p className="text-slate-400">Access Code</p>
-                  <p className="font-semibold text-white">
-                    {review.needs_access_code ? 'Required' : 'Not needed'}
-                  </p>
-                </div>
+                <div><p className="text-slate-400">Wallet</p><p className="font-semibold text-white">{review.wallet_connection}★</p></div>
+                <div><p className="text-slate-400">UI/UX</p><p className="font-semibold text-white">{review.ui_ux_quality}★</p></div>
+                <div><p className="text-slate-400">Functionality</p><p className="font-semibold text-white">{review.core_functionality}★</p></div>
+                <div><p className="text-slate-400">Mobile</p><p className="font-semibold text-white">{review.mobile_experience}★</p></div>
+                <div><p className="text-slate-400">Speed</p><p className="font-semibold text-white">{review.speed_performance}★</p></div>
+                <div><p className="text-slate-400">Access Code</p><p className="font-semibold text-white">{review.needs_access_code ? 'Required' : 'Not needed'}</p></div>
               </div>
 
               {review.bugs_issues && (
                 <div className="mb-3">
                   <p className="text-sm font-medium text-red-300 mb-1">Bugs/Issues:</p>
-                  <p className="text-sm text-slate-300 bg-slate-900 rounded p-3">
-                    {review.bugs_issues}
-                  </p>
+                  <p className="text-sm text-slate-300 bg-slate-900 rounded p-3">{review.bugs_issues}</p>
                 </div>
               )}
-
               {review.general_comments && (
                 <div>
                   <p className="text-sm font-medium text-slate-300 mb-1">Comments:</p>
-                  <p className="text-sm text-slate-300 bg-slate-900 rounded p-3">
-                    {review.general_comments}
-                  </p>
+                  <p className="text-sm text-slate-300 bg-slate-900 rounded p-3">{review.general_comments}</p>
                 </div>
               )}
             </div>

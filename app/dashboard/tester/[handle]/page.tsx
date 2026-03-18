@@ -1,15 +1,15 @@
 "use client"
 
-import { useState, useEffect, use } from 'react'
-import { useRouter } from 'next/navigation'
-import { App, Review } from '@/lib/types'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import { Review, App } from '@/lib/types'
 import Link from 'next/link'
 
-export default function TesterDetailPage({ params }: { params: Promise<{ handle: string }> }) {
-  const { handle: rawHandle } = use(params)
+export default function TesterDetailPage() {
+  const { handle: rawHandle } = useParams<{ handle: string }>()
   const router = useRouter()
-  const [apps, setApps] = useState<App[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
+  const [apps, setApps] = useState<App[]>([])
   const [loading, setLoading] = useState(true)
 
   const handle = decodeURIComponent(rawHandle)
@@ -25,7 +25,7 @@ export default function TesterDetailPage({ params }: { params: Promise<{ handle:
         setLoading(false)
       })
       .catch(err => {
-        console.error('Failed to load data:', err)
+        console.error('Failed to load reviews:', err)
         setLoading(false)
       })
   }, [handle])
@@ -39,7 +39,7 @@ export default function TesterDetailPage({ params }: { params: Promise<{ handle:
   }
 
   const testerName = reviews[0]?.tester_name || handle
-  const completionPercentage = apps.length > 0 ? ((reviews.length / apps.length) * 100).toFixed(0) : '0'
+  const completionPercentage = ((reviews.length / (apps.length || 1)) * 100).toFixed(0)
   const avgOverall = reviews.length > 0
     ? (reviews.reduce((sum, r) => sum + r.overall_rating, 0) / reviews.length).toFixed(1)
     : 'N/A'
@@ -47,10 +47,7 @@ export default function TesterDetailPage({ params }: { params: Promise<{ handle:
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="text-slate-400 hover:text-white transition-colors"
-        >
+        <button onClick={() => router.push('/dashboard')} className="text-slate-400 hover:text-white transition-colors">
           ← Back to Dashboard
         </button>
       </div>
@@ -84,10 +81,7 @@ export default function TesterDetailPage({ params }: { params: Promise<{ handle:
           {reviews.map((review) => {
             const app = apps.find(a => a.slug === review.app_slug)
             return (
-              <div
-                key={review.id}
-                className="bg-slate-800 border border-slate-700 rounded-lg p-6"
-              >
+              <div key={review.id} className="bg-slate-800 border border-slate-700 rounded-lg p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <Link
@@ -100,55 +94,28 @@ export default function TesterDetailPage({ params }: { params: Promise<{ handle:
                       {new Date(review.created_at || '').toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="text-2xl font-bold text-yellow-400">
-                    {review.overall_rating}★
-                  </div>
+                  <div className="text-2xl font-bold text-yellow-400">{review.overall_rating}★</div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 text-sm">
-                  <div>
-                    <p className="text-slate-400">Wallet</p>
-                    <p className="font-semibold text-white">{review.wallet_connection}★</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-400">UI/UX</p>
-                    <p className="font-semibold text-white">{review.ui_ux_quality}★</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-400">Functionality</p>
-                    <p className="font-semibold text-white">{review.core_functionality}★</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-400">Mobile</p>
-                    <p className="font-semibold text-white">{review.mobile_experience}★</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-400">Speed</p>
-                    <p className="font-semibold text-white">{review.speed_performance}★</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-400">Access Code</p>
-                    <p className="font-semibold text-white">
-                      {review.needs_access_code ? 'Required' : 'Not needed'}
-                    </p>
-                  </div>
+                  <div><p className="text-slate-400">Wallet</p><p className="font-semibold text-white">{review.wallet_connection}★</p></div>
+                  <div><p className="text-slate-400">UI/UX</p><p className="font-semibold text-white">{review.ui_ux_quality}★</p></div>
+                  <div><p className="text-slate-400">Functionality</p><p className="font-semibold text-white">{review.core_functionality}★</p></div>
+                  <div><p className="text-slate-400">Mobile</p><p className="font-semibold text-white">{review.mobile_experience}★</p></div>
+                  <div><p className="text-slate-400">Speed</p><p className="font-semibold text-white">{review.speed_performance}★</p></div>
+                  <div><p className="text-slate-400">Access Code</p><p className="font-semibold text-white">{review.needs_access_code ? 'Required' : 'Not needed'}</p></div>
                 </div>
 
                 {review.bugs_issues && (
                   <div className="mb-3">
                     <p className="text-sm font-medium text-red-300 mb-1">Bugs/Issues:</p>
-                    <p className="text-sm text-slate-300 bg-slate-900 rounded p-3">
-                      {review.bugs_issues}
-                    </p>
+                    <p className="text-sm text-slate-300 bg-slate-900 rounded p-3">{review.bugs_issues}</p>
                   </div>
                 )}
-
                 {review.general_comments && (
                   <div>
                     <p className="text-sm font-medium text-slate-300 mb-1">Comments:</p>
-                    <p className="text-sm text-slate-300 bg-slate-900 rounded p-3">
-                      {review.general_comments}
-                    </p>
+                    <p className="text-sm text-slate-300 bg-slate-900 rounded p-3">{review.general_comments}</p>
                   </div>
                 )}
               </div>
