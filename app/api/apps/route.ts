@@ -1,26 +1,18 @@
-import { NextResponse } from 'next/server'
-import { headers } from 'next/headers'
+import { unstable_noStore as noStore } from 'next/cache'
 import { getAllApps } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 0
-export const fetchCache = 'force-no-store'
+export const runtime = 'nodejs'
 
 export async function GET() {
+  noStore()
+  
   try {
-    headers()
     const apps = getAllApps()
-    return new Response(JSON.stringify({ data: apps }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-      }
+    return Response.json({ data: apps }, {
+      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate' }
     })
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch apps' },
-      { status: 500 }
-    )
+    return Response.json({ error: error.message || 'Failed to fetch apps' }, { status: 500 })
   }
 }

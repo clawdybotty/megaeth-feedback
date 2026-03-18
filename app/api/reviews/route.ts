@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { unstable_noStore as noStore } from 'next/cache'
 import { 
   createReview, 
   getReviewsByApp, 
@@ -7,7 +8,11 @@ import {
 } from '@/lib/db'
 import { Review } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET(request: NextRequest) {
+  noStore()
   try {
     const searchParams = request.nextUrl.searchParams
     const app = searchParams.get('app')
